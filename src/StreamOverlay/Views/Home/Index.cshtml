@@ -1,0 +1,39 @@
+﻿@model IndexViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">OBS Controller</h1>
+</div>
+
+<div class="row">
+    <div class="col d-flex align-items-center justify-content-center flex-column">
+        <p>Found OBS Scenes:</p>
+        @foreach (var name in Model.SceneNames)
+        {
+            <button class="btn btn-primary" onclick="activateScene('@name')">"@name"</button>
+        }
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        function activateScene(sceneName) {
+            fetch(`/Obs/ActivateScene/?sceneName=${sceneName}`, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('ActivateScene sent successfully');
+                    } else {
+                        console.error('Server responded with error:', response.status);
+                    }
+                })
+                .catch(error => {
+                    console.error('AJAX error:', error);
+                });
+        }
+    </script>    
+}
