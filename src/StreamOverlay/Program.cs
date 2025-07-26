@@ -15,6 +15,8 @@ builder.Services.AddSingleton<OBSWebsocket>();
 builder.Services.Configure<ObsOptions>(builder.Configuration.GetSection("Obs"));
 builder.Services.AddSingleton<IObsService, ObsService>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<IObsService>());
+builder.Services.AddSingleton<ObsDispatcher>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<ObsDispatcher>());
 
 var app = builder.Build();
 

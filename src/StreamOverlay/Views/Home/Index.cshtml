@@ -8,12 +8,19 @@
 </div>
 
 <div class="row">
-    <div class="col d-flex align-items-center justify-content-center flex-column">
+    <div class="col-2 d-flex align-items-center justify-content-center flex-column">
         <p>Found OBS Scenes:</p>
+        <div class="d-grid gap-2 w-100">
         @foreach (var name in Model.SceneNames)
         {
-            <button class="btn btn-primary" onclick="activateScene('@name')">"@name"</button>
+            <button data-scene-name="@name" class="btn btn-primary btn-lg" onclick="activateScene('@name')">"@name"</button>
         }
+        </div>
+    </div>
+    <div class="col-10">
+        <div class="row">
+            <div class="col-1"></div>
+        </div>
     </div>
 </div>
 
@@ -38,16 +45,31 @@
 
         let connection = new signalR.HubConnectionBuilder().withUrl("/obs-hub").build();
 
-        connection.on("PongReceived", function () {
-            console.log(`Received pong`);
+        connection.on("ProgramSceneChanged", sceneName => {
+            console.log(`Program Scene Switched: ${sceneName}`);
+            clearButtons();
+            document.querySelector(`[data-scene-name="${sceneName}"]`).disabled = true;
         });
+        
+        connection.on("InputMuteStateChanged", (inputName, isMuted) => {
+            if (isMuted) {
+                console.log(`MUTED 🔇: ${inputName}`);
+            } else {
+                console.log(`UNMUTED 🔈: ${inputName}`);
+            }
+        })
 
         connection.start().then(function () {
-            connection.invoke("Ping").catch(function (err) {
-                return console.error(err.toString());
-            });
+            console.log("Connected to OBS Hub");
         }).catch(function (err) {
             return console.error(err.toString());
         });
+        
+        function clearButtons() {
+            const elements = document.querySelectorAll('[data-scene-name]');
+            for (let element of elements) {
+                element.disabled = false;
+            }
+        }
     </script>
 }
