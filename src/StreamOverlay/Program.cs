@@ -1,12 +1,14 @@
 using OBSWebsocketDotNet;
 using SharpHook; // TODO: Remove SharpHook package as it didn't work for OBS
 using StreamOverlay;
+using StreamOverlay.Hubs;
 using StreamOverlay.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 builder.Services.AddSingleton<EventSimulator>();
 builder.Services.AddSingleton<ObsService>();
 builder.Services.AddSingleton<OBSWebsocket>();
@@ -35,6 +37,6 @@ app.MapControllerRoute(
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
+app.MapHub<ObsHub>("/obs-hub");
 
 app.Run();
