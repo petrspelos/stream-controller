@@ -1,8 +1,10 @@
 using OBSWebsocketDotNet;
-using SharpHook; // TODO: Remove SharpHook package as it didn't work for OBS
+using SharpHook;
+using StreamController.Core;
+using StreamController.Core.Options;
+using StreamController.Obs; // TODO: Remove SharpHook package as it didn't work for OBS
 using StreamOverlay;
 using StreamOverlay.Hubs;
-using StreamOverlay.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,13 +12,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<EventSimulator>();
-builder.Services.AddSingleton<ObsService>();
+// builder.Services.AddSingleton<ObsService>();
 builder.Services.AddSingleton<OBSWebsocket>();
 builder.Services.Configure<ObsOptions>(builder.Configuration.GetSection("Obs"));
-builder.Services.AddSingleton<IObsService, ObsService>();
-builder.Services.AddHostedService(sp => sp.GetRequiredService<IObsService>());
+// builder.Services.AddSingleton<IObsService, ObsService>();
+builder.Services.AddHostedService<ObsConnectionHostedService>();
 builder.Services.AddSingleton<ObsDispatcher>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<ObsDispatcher>());
+builder.Services.AddSingleton<IObsClient, ObsClient>();
 
 var app = builder.Build();
 

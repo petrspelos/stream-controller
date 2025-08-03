@@ -11,22 +11,27 @@
     <div class="col-2 d-flex align-items-center justify-content-center flex-column">
         <p>Found OBS Scenes:</p>
         <div class="d-grid gap-2 w-100">
-        @foreach (var name in Model.SceneNames)
-        {
-            <button data-scene-name="@name" class="btn btn-primary btn-lg" onclick="activateScene('@name')">"@name"</button>
-        }
+            @foreach (var name in Model.SceneNames)
+            {
+                <button data-scene-name="@name" class="btn btn-primary btn-lg" onclick="activateScene('@name')">"@name"</button>
+            }
         </div>
     </div>
-    <div class="col-10">
-        <div class="row">
-            <div class="col-1"></div>
+    <div class="col-2 d-flex align-items-center justify-content-center flex-column">
+        <p>Sources:</p>
+        <div class="d-grid gap-2 w-100" id="SourcesList">
+            @* <button data-source-id="@name" class="btn btn-primary btn-lg">"@name"</button> *@
         </div>
+    </div>
+    <div class="col-8">
     </div>
 </div>
 
 @section Scripts
 {
     <script>
+        const sourcesList = document.getElementById("SourcesList");
+        
         function activateScene(sceneName) {
             fetch(`/Obs/ActivateScene/?sceneName=${sceneName}`, {
                 method: 'POST'
@@ -49,6 +54,7 @@
             console.log(`Program Scene Switched: ${sceneName}`);
             clearButtons();
             document.querySelector(`[data-scene-name="${sceneName}"]`).disabled = true;
+            fetchSceneSources(sceneName);
         });
         
         connection.on("InputMuteStateChanged", (inputName, isMuted) => {
@@ -57,7 +63,19 @@
             } else {
                 console.log(`UNMUTED 🔈: ${inputName}`);
             }
-        })
+        });
+
+        connection.on("InputActiveStateChanged", (inputName, isActive) => {
+            console.log(`Input ${inputName} active: ${isActive}`);
+        });
+
+        connection.on("SceneSourcesReceived", (sources) => {
+            console.log('Received Sources:', sources);
+            sourcesList.innerHTML = "";
+            for (const source of sources) {
+                
+            }
+        });
 
         connection.start().then(function () {
             console.log("Connected to OBS Hub");
@@ -70,6 +88,12 @@
             for (let element of elements) {
                 element.disabled = false;
             }
+        }
+        
+        function fetchSceneSources(sceneName) {
+            connection.invoke("GetSceneSources", sceneName).catch(function (err) {
+                return console.error(err.toString());
+            });
         }
     </script>
 }

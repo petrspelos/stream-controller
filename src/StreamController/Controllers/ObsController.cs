@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using SharpHook.Data;
+using StreamController.Core;
 
 namespace StreamOverlay.Controllers;
 
-public class ObsController(IObsService obs) : Controller
+public class ObsController(IObsClient obs) : Controller
 {
     [HttpPost]
     public IActionResult ActivateScene([FromQuery] string sceneName)

@@ -2,13 +2,13 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using SharpHook;
 using SharpHook.Data;
+using StreamController.Core;
 using StreamOverlay.Models;
 
 namespace StreamOverlay.Controllers;
 
 public class HomeController(
-    ILogger<HomeController> logger,
-    IObsService obsService
+    IObsClient obsService
     ) : Controller
 {
     public IActionResult Index()

@@ -1,4 +1,4 @@
-namespace StreamOverlay.Options;
+namespace StreamController.Core.Options;
 
 public class ObsOptions
 {
