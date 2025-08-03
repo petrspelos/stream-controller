@@ -16,7 +16,8 @@
         const data = {
           scenes: [],
           activeScene: null,
-          sources: []  
+          sources: [], 
+          watchedSources: []
         };
 
         console.log("Initial Connection Status:", obsConnected);
@@ -30,11 +31,17 @@
             fetchSceneSources(sceneName);
         });
         
-        connection.on("InputMuteStateChanged", (inputName, isMuted) => {
-            if (isMuted) {
-                console.log(`MUTED 🔇: ${inputName}`);
-            } else {
-                console.log(`UNMUTED 🔈: ${inputName}`);
+        connection.on("InputMuteStateChanged", (sourceName, isMuted) => {;
+            if (data.watchedSources.some(source => source.name === sourceName)) {
+                console.log(isMuted ? `MUTED 🔇: ${sourceName}` : `UNMUTED 🔈: ${sourceName}`);
+            }
+        });
+
+        connection.on("SourceEnableStateChanged", (itemId, isEnabled) => {
+            let source = data.watchedSources.find(s => s.id === itemId);
+            
+            if (source) {
+                console.log(!isEnabled ? `ENABLED 🔈: ${source.name}` : `DISABLED 🔇: ${source.name}`);
             }
         });
 
@@ -79,6 +86,20 @@
             return console.error(err.toString());
         });
         
+        function addWatchedSource(sourceName) {
+            let source = data.sources.find(s => s.name === sourceName);
+
+            if (!source) {
+                console.error(`No source item with name '${sourceName}' found in the current scene.`);
+                return;
+            }
+            
+            if (!data.watchedSources.some(s => s.id === source.id)) {
+                data.watchedSources.push(source);
+                console.log(`Watching ${sourceName} for mute/unmute`);
+            }
+        }
+
         function refreshAll() {
             console.log("Requesting full refresh...");
             requestData("Scenes");
