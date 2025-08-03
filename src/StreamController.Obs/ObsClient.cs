@@ -37,6 +37,8 @@ public class ObsClient : IObsClient, IDisposable
         _logger.LogInformation("OBS disconnected");
     }
 
+    public bool IsConnected => _obs.IsConnected;
+
     public Task ConnectAsync(CancellationToken cancellationToken = default)
     {
         _obs.ConnectAsync(_options.Url, _options.Password);

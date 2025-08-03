@@ -4,6 +4,8 @@ namespace StreamController.Core;
 
 public interface IObsClient
 {
+    bool IsConnected { get; }
+    
     Task ConnectAsync(CancellationToken cancellationToken = default);
     
     Result<IReadOnlyCollection<string>> GetSceneNames();
