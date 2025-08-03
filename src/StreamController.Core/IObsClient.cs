@@ -13,4 +13,6 @@ public interface IObsClient
     Result ActivateScene(string sceneName);
     
     Result<IReadOnlyCollection<Source>> GetSceneSources(string sceneName);
+    
+    Result<string> GetActiveSceneName();
 }

@@ -13,11 +13,9 @@ public class HomeController(
 {
     public IActionResult Index()
     {
-        var sceneNamesResult = obsService.GetSceneNames(); 
-        
         return View(new IndexViewModel
         {
-            SceneNames = sceneNamesResult.Value
+            IsObsConnected = obsService.IsConnected
         });
     }
 

@@ -7,46 +7,19 @@
     <h1 class="display-4">OBS Controller</h1>
 </div>
 
-<div class="row">
-    <div class="col-2 d-flex align-items-center justify-content-center flex-column">
-        <p>Found OBS Scenes:</p>
-        <div class="d-grid gap-2 w-100">
-            @foreach (var name in Model.SceneNames)
-            {
-                <button data-scene-name="@name" class="btn btn-primary btn-lg" onclick="activateScene('@name')">"@name"</button>
-            }
-        </div>
-    </div>
-    <div class="col-2 d-flex align-items-center justify-content-center flex-column">
-        <p>Sources:</p>
-        <div class="d-grid gap-2 w-100" id="SourcesList">
-            @* <button data-source-id="@name" class="btn btn-primary btn-lg">"@name"</button> *@
-        </div>
-    </div>
-    <div class="col-8">
-    </div>
-</div>
-
 @section Scripts
 {
     <script>
+        let obsConnected = @Model.IsObsConnected.ToString().ToLower();
         const sourcesList = document.getElementById("SourcesList");
         
-        function activateScene(sceneName) {
-            fetch(`/Obs/ActivateScene/?sceneName=${sceneName}`, {
-                method: 'POST'
-            })
-                .then(response => {
-                    if (response.ok) {
-                        console.log('ActivateScene sent successfully');
-                    } else {
-                        console.error('Server responded with error:', response.status);
-                    }
-                })
-                .catch(error => {
-                    console.error('AJAX error:', error);
-                });
-        }
+        const data = {
+          scenes: [],
+          activeScene: null,
+          sources: []  
+        };
+
+        console.log("Initial Connection Status:", obsConnected);
 
         let connection = new signalR.HubConnectionBuilder().withUrl("/obs-hub").build();
 
@@ -69,19 +42,48 @@
             console.log(`Input ${inputName} active: ${isActive}`);
         });
 
-        connection.on("SceneSourcesReceived", (sources) => {
+        connection.on("ObsConnected", () => {
+           console.log("Received: ObsConnected");
+           setTimeout(refreshAll, 500);
+        });
+
+        connection.on("ObsDisconnected", () => {
+            console.log("Received: ObsDisconnected");
+        });
+        
+        connection.on("Scenes", (sceneNames) => {
+            console.log("Scene Names:", sceneNames);
+            data.scenes = sceneNames;
+        });
+
+        connection.on("ActiveScene", (sceneName) => {
+            console.log("Active Scene:", sceneName);
+            data.activeScene = sceneName;
+            requestRaw("GetSceneSources", sceneName);
+        });
+
+        connection.on("SceneSources", (sources) => {
             console.log('Received Sources:', sources);
-            sourcesList.innerHTML = "";
-            for (const source of sources) {
-                
-            }
+            data.sources = sources;
         });
 
         connection.start().then(function () {
-            console.log("Connected to OBS Hub");
+            if (!obsConnected) {
+                console.error("OBS not connected. Waiting for connection...");
+                return;
+            }
+            
+            console.log("Already connected to OBS Hub");
+            refreshAll();
         }).catch(function (err) {
             return console.error(err.toString());
         });
+        
+        function refreshAll() {
+            console.log("Requesting full refresh...");
+            requestData("Scenes");
+            requestData("ActiveScene");
+        }
         
         function clearButtons() {
             const elements = document.querySelectorAll('[data-scene-name]');
@@ -90,6 +92,18 @@
             }
         }
         
+        function requestData(type) {
+            connection.invoke(`Request${type}`).catch(function (err) {
+                return console.error(err.toString());
+            });
+        }
+        
+        function requestRaw(endpoint, ...data) {
+            connection.invoke(endpoint, ...data).catch(function (err) {
+                return console.error(err.toString());
+            });
+        }
+
         function fetchSceneSources(sceneName) {
             connection.invoke("GetSceneSources", sceneName).catch(function (err) {
                 return console.error(err.toString());

@@ -15,6 +15,7 @@ public class ObsConnectionHostedService(
     {
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
+        // TODO: Reconnect on Disconnect event from the client
         var policy = Policy
             .HandleResult<bool>(connected => !connected)
             .WaitAndRetryForeverAsync(

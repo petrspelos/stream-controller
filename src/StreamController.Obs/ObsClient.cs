@@ -60,6 +60,9 @@ public class ObsClient : IObsClient, IDisposable
                 .Select(item => new Source(item.ItemId, item.SourceName, item.SourceKind))
                 .ToList());
 
+    public Result<string> GetActiveSceneName()
+        => PerformObsQuery<string>(o => _obs.GetSceneList().CurrentProgramSceneName);
+
     private Result<TResult> PerformObsQuery<TResult>(Func<OBSWebsocket, TResult> query)
     {
         if (!_obs.IsConnected)

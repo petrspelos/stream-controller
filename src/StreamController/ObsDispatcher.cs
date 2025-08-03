@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using OBSWebsocketDotNet;
+using OBSWebsocketDotNet.Communication;
 using OBSWebsocketDotNet.Types.Events;
 using StreamOverlay.Hubs;
 
@@ -11,6 +12,8 @@ public class ObsDispatcher(OBSWebsocket obs, IHubContext<ObsHub> hub) : IHostedS
     {
         obs.CurrentProgramSceneChanged += OnCurrentProgramSceneChanged;
         obs.InputMuteStateChanged += OnInputMuteStateChanged;
+        obs.Connected += OnConnected;
+        obs.Disconnected += OnDisconnected;
         
         return Task.CompletedTask;
     }
@@ -19,8 +22,22 @@ public class ObsDispatcher(OBSWebsocket obs, IHubContext<ObsHub> hub) : IHostedS
     {
         obs.CurrentProgramSceneChanged -= OnCurrentProgramSceneChanged;
         obs.InputMuteStateChanged -= OnInputMuteStateChanged;
+        obs.Connected -= OnConnected;
+        obs.Disconnected -= OnDisconnected;
         
         return Task.CompletedTask;
+    }
+
+    private void OnDisconnected(object? sender, ObsDisconnectionInfo e)
+    {
+        // Fire and forget
+        _ = hub.Clients.All.SendAsync("ObsDisconnected");
+    }
+
+    private void OnConnected(object? sender, EventArgs e)
+    {
+        // Fire and forget
+        _ = hub.Clients.All.SendAsync("ObsConnected");
     }
 
     private void OnInputMuteStateChanged(object? sender, InputMuteStateChangedEventArgs e)
@@ -32,6 +49,6 @@ public class ObsDispatcher(OBSWebsocket obs, IHubContext<ObsHub> hub) : IHostedS
     private void OnCurrentProgramSceneChanged(object? sender, ProgramSceneChangedEventArgs e)
     {
         // Fire and forget
-        _ = hub.Clients.All.SendAsync("ProgramSceneChanged", e.SceneName);
+        _ = hub.Clients.All.SendAsync("ActiveScene", e.SceneName);
     }
 }
