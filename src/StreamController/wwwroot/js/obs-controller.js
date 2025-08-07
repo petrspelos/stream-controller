@@ -1,0 +1,111 @@
+const sourcesList = document.getElementById("SourcesList");
+
+const data = {
+    scenes: [],
+    activeScene: null,
+    sources: [],
+    watchedSources: []
+};
+
+let connection = new signalR.HubConnectionBuilder().withUrl("/obs-hub").build();
+
+connection.on("ProgramSceneChanged", sceneName => {
+    console.log(`Program Scene Switched: ${sceneName}`);
+    clearButtons();
+    document.querySelector(`[data-scene-name="${sceneName}"]`).disabled = true;
+    fetchSceneSources(sceneName);
+});
+
+connection.on("InputMuteStateChanged", (sourceName, isMuted) => {
+    if (data.watchedSources.some(source => source.name === sourceName)) {
+        console.log(isMuted ? `MUTED 🔇: ${sourceName}` : `UNMUTED 🔈: ${sourceName}`);
+    }
+});
+
+connection.on("SourceEnableStateChanged", (itemId, isEnabled) => {
+    let source = data.watchedSources.find(s => s.id === itemId);
+
+    if (source) {
+        console.log(!isEnabled ? `ENABLED 🔈: ${source.name}` : `DISABLED 🔇: ${source.name}`);
+    }
+});
+
+connection.on("InputActiveStateChanged", (inputName, isActive) => {
+    console.log(`Input ${inputName} active: ${isActive}`);
+});
+
+connection.on("ObsConnected", () => {
+    console.log("Received: ObsConnected");
+    setTimeout(refreshAll, 500);
+});
+
+connection.on("ObsDisconnected", () => {
+    console.log("Received: ObsDisconnected");
+});
+
+connection.on("Scenes", (sceneNames) => {
+    console.log("Scene Names:", sceneNames);
+    data.scenes = sceneNames;
+});
+
+connection.on("ActiveScene", (sceneName) => {
+    console.log("Active Scene:", sceneName);
+    data.activeScene = sceneName;
+    requestRaw("GetSceneSources", sceneName);
+});
+
+connection.on("SceneSources", (sources) => {
+    console.log('Received Sources:', sources);
+    data.sources = sources;
+});
+
+connection.start().then(function () {
+    requestData("ObsConnection");
+}).catch(function (err) {
+    return console.error(err.toString());
+});
+
+function addWatchedSource(sourceName) {
+    let source = data.sources.find(s => s.name === sourceName);
+
+    if (!source) {
+        console.error(`No source item with name '${sourceName}' found in the current scene.`);
+        return;
+    }
+
+    if (!data.watchedSources.some(s => s.id === source.id)) {
+        data.watchedSources.push(source);
+        console.log(`Watching ${sourceName} for mute/unmute`);
+    }
+}
+
+function refreshAll() {
+    console.log("Requesting full refresh...");
+    requestData("Scenes");
+    requestData("ActiveScene");
+}
+
+function clearButtons() {
+    const elements = document.querySelectorAll('[data-scene-name]');
+    for (let element of elements) {
+        element.disabled = false;
+    }
+}
+
+function requestData(type) {
+    connection.invoke(`Request${type}`).catch(function (err) {
+        return console.error(err.toString());
+    });
+}
+
+function requestRaw(endpoint, ...data) {
+    connection.invoke(endpoint, ...data).catch(function (err) {
+        return console.error(err.toString());
+    });
+}
+
+function fetchSceneSources(sceneName) {
+    connection.invoke("GetSceneSources", sceneName).catch(function (err) {
+        return console.error(err.toString());
+    });
+}

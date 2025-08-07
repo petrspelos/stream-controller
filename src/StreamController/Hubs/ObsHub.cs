@@ -8,6 +8,15 @@ public class ObsHub(
     ILogger<ObsHub> logger
     ) : Hub
 {
+    public Task RequestObsConnection()
+    {
+        var connected = obs.IsConnected;
+
+        return connected
+            ? Clients.Caller.SendAsync("ObsConnected")
+            : Clients.Caller.SendAsync("ObsDisconnected");
+    }
+
     public Task RequestScenes()
     {
         var scenesResult = obs.GetSceneNames();
