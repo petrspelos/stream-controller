@@ -8,6 +8,12 @@ public class ObsHub(
     ILogger<ObsHub> logger
     ) : Hub
 {
+    public Task ActivateScene(string sceneName)
+    {
+        _ = obs.ActivateScene(sceneName);
+        return Task.CompletedTask;
+    }
+
     public Task RequestObsConnection()
     {
         var connected = obs.IsConnected;

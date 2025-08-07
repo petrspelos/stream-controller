@@ -1,4 +1,19 @@
+/**
+ * Get a template from a string
+ * https://stackoverflow.com/a/41015840
+ * @param  {String} str    The string to interpolate
+ * @param  {Object} params The parameters
+ * @return {String}        The interpolated string
+ */
+function interpolate (str, params) {
+    let names = Object.keys(params);
+    let vals = Object.values(params);
+    return new Function(...names, `return \`${str}\`;`)(...vals);
+}
+
+const sceneBtnList = document.getElementById('scene-btn-list');
 const sourcesList = document.getElementById("SourcesList");
+const sceneBtnTemplate = document.getElementById("t-scene-btn");
 
 const data = {
     scenes: [],
@@ -46,6 +61,15 @@ connection.on("ObsDisconnected", () => {
 connection.on("Scenes", (sceneNames) => {
     console.log("Scene Names:", sceneNames);
     data.scenes = sceneNames;
+    sceneBtnList.innerHTML = "";
+    let newHtml = "";
+    for (let scene of sceneNames) {
+        newHtml += interpolate(
+            sceneBtnTemplate.innerHTML, 
+            { name: scene, text: scene }
+        );
+    }
+    sceneBtnList.innerHTML = newHtml;
 });
 
 connection.on("ActiveScene", (sceneName) => {
@@ -64,6 +88,10 @@ connection.start().then(function () {
 }).catch(function (err) {
     return console.error(err.toString());
 });
+
+function changeSceneClicked(btn) {
+    requestRaw("ActivateScene", btn.dataset.sceneName);
+}
 
 function addWatchedSource(sourceName) {
     let source = data.sources.find(s => s.name === sourceName);

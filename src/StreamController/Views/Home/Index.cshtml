@@ -1,11 +1,16 @@
 ﻿@model IndexViewModel
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Controller";
 }
 
-<div class="text-center">
-    <h1 class="display-4">OBS Controller</h1>
+<div class="col-6 flex-column" id="scene-btn-list">
 </div>
+<div class="col-6">
+</div>
+
+<template id="t-scene-btn">
+    <button onclick="changeSceneClicked(this)" data-scene-name="${name}" class="btn btn-lg btn-primary d-flex w-100 mb-2">${text}</button>
+</template>
 
 @section Scripts
 {
