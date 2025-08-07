@@ -3,13 +3,22 @@
     ViewData["Title"] = "Controller";
 }
 
-<div class="col-6 flex-column" id="scene-btn-list">
-</div>
-<div class="col-6">
+<div class="row">
+    <div class="col-3 flex-column" id="scene-btn-list">
+    </div>
+    <div class="col-9 flex-column" id="source-item-list">
+    </div>
 </div>
 
 <template id="t-scene-btn">
-    <button onclick="changeSceneClicked(this)" data-scene-name="${name}" class="btn btn-lg btn-primary d-flex w-100 mb-2">${text}</button>
+    <button onclick="changeSceneClicked(this)" data-scene-name="${name}" class="btn btn-lg btn-primary d-flex w-100 mt-2">${text}</button>
+</template>
+<template id="t-source-item">
+    <div data-source-id="${id}" class="input-group mt-2 w-100 d-flex">
+        <div class="input-group-text" id="btnGroupAddon">${name}</div>
+        <button type="button" class="btn btn-success">Show</button>
+        <button type="button" class="btn btn-danger">Hide</button>
+    </div>    
 </template>
 
 @section Scripts

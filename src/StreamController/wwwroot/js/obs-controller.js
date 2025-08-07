@@ -12,8 +12,9 @@ function interpolate (str, params) {
 }
 
 const sceneBtnList = document.getElementById('scene-btn-list');
-const sourcesList = document.getElementById("SourcesList");
+const sourceItemList = document.getElementById('source-item-list');
 const sceneBtnTemplate = document.getElementById("t-scene-btn");
+const sourceItemTemplate = document.getElementById("t-source-item");
 
 const data = {
     scenes: [],
@@ -23,13 +24,6 @@ const data = {
 };
 
 let connection = new signalR.HubConnectionBuilder().withUrl("/obs-hub").build();
-
-connection.on("ProgramSceneChanged", sceneName => {
-    console.log(`Program Scene Switched: ${sceneName}`);
-    clearButtons();
-    document.querySelector(`[data-scene-name="${sceneName}"]`).disabled = true;
-    fetchSceneSources(sceneName);
-});
 
 connection.on("InputMuteStateChanged", (sourceName, isMuted) => {
     if (data.watchedSources.some(source => source.name === sourceName)) {
@@ -75,12 +69,25 @@ connection.on("Scenes", (sceneNames) => {
 connection.on("ActiveScene", (sceneName) => {
     console.log("Active Scene:", sceneName);
     data.activeScene = sceneName;
+
+    clearButtons();
+    document.querySelector(`[data-scene-name="${sceneName}"]`).disabled = true;
+    
     requestRaw("GetSceneSources", sceneName);
 });
 
 connection.on("SceneSources", (sources) => {
     console.log('Received Sources:', sources);
     data.sources = sources;
+    sourceItemList.innerHTML = "";
+    let newHtml = "";
+    for (let source of sources) {
+        newHtml += interpolate(
+            sourceItemTemplate.innerHTML,
+            { id: source.id, name: source.name }
+        );
+    }
+    sourceItemList.innerHTML = newHtml;
 });
 
 connection.start().then(function () {
@@ -128,12 +135,6 @@ function requestData(type) {
 
 function requestRaw(endpoint, ...data) {
     connection.invoke(endpoint, ...data).catch(function (err) {
-        return console.error(err.toString());
-    });
-}
-
-function fetchSceneSources(sceneName) {
-    connection.invoke("GetSceneSources", sceneName).catch(function (err) {
         return console.error(err.toString());
     });
 }
