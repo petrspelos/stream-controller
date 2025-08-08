@@ -96,6 +96,11 @@ connection.start().then(function () {
     return console.error(err.toString());
 });
 
+function setInputEnabled(btn, enabled) {
+    let itemId = Number(btn.parentElement.dataset.sourceId);
+    requestRaw("SetInputEnabled", data.activeScene, itemId, enabled);
+}
+
 function changeSceneClicked(btn) {
     requestRaw("ActivateScene", btn.dataset.sceneName);
 }

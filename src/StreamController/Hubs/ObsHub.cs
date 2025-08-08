@@ -49,4 +49,10 @@ public class ObsHub(
             ? Clients.Caller.SendAsync("SceneSources", sourcesResult.Value)
             : Task.CompletedTask;
     }
+
+    public Task SetInputEnabled(string sceneName, int itemId, bool enabled)
+    {
+        _ = obs.SetSourceEnabled(sceneName, itemId, enabled);
+        return Task.CompletedTask;
+    }
 }

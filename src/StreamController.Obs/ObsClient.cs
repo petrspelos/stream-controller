@@ -63,6 +63,10 @@ public class ObsClient : IObsClient, IDisposable
     public Result<string> GetActiveSceneName()
         => PerformObsQuery<string>(o => _obs.GetSceneList().CurrentProgramSceneName);
 
+    public Result SetSourceEnabled(string sceneName, int id, bool muted)
+        => PerformObsAction(o
+            => o.SetSceneItemEnabled(sceneName, id, muted));
+
     private Result<TResult> PerformObsQuery<TResult>(Func<OBSWebsocket, TResult> query)
     {
         if (!_obs.IsConnected)

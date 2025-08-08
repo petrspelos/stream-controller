@@ -15,4 +15,6 @@ public interface IObsClient
     Result<IReadOnlyCollection<Source>> GetSceneSources(string sceneName);
     
     Result<string> GetActiveSceneName();
+
+    Result SetSourceEnabled(string sceneName, int id, bool muted);
 }
